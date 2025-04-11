@@ -1,0 +1,109 @@
+QUESTION 1 SOLUTION SYNTAX:
+
+db.getCollection('Transactions').aggregate(
+  [
+    {
+      $group: {
+        _id: '$product_id',
+        total_revenue: {
+          $sum: {
+            $multiply: ['$quantity', '$price']
+          }
+        }
+      }
+    },
+    { $sort: { total_revenue: -1 } },
+    { $limit: 5 }
+  ],
+  { maxTimeMS: 60000, allowDiskUse: true }
+);
+
+
+
+OUTPUT:
+
+[{
+  "_id": 105,
+  "total_revenue": 279.93
+},
+{
+  "_id": 116,
+  "total_revenue": 259.98
+},
+{
+  "_id": 109,
+  "total_revenue": 239.96
+},
+{
+  "_id": 110,
+  "total_revenue": 199.98
+},
+{
+  "_id": 115,
+  "total_revenue": 159.98
+}]
+
+
+
+
+QUESTION 2 SOLUTION SYNTAX:
+
+db.getCollection('Transactions').aggregate(
+  [
+    {
+      $group: {
+        _id: null,
+        avgtransaction: {
+          $avg: {
+            $multiply: ['$price', '$quantity']
+          }
+        }
+      }
+    }
+  ],
+  { maxTimeMS: 60000, allowDiskUse: true }
+);
+
+
+
+OUTPUT:
+[{
+  "_id": null,
+  "avgtransaction": 49.64204545454545
+}]
+
+
+
+
+QUESTION 3 SOLUTION SYNTAX:
+
+db.getCollection('Transactions').aggregate(
+  [
+    {
+      $lookup: {
+        from: 'Products',
+        localField: 'product_id',
+        foreignField: 'product_id',
+        as: 'product_details'
+      }
+    },
+    { $unwind: { path: '$product_details' } },
+    {
+      $group: {
+        _id: '$product_details.category',
+        totalquantitysold: { $sum: '$quantity' }
+      }
+    },
+    { $sort: { totalquantitysold: -1 } },
+    { $limit: 1 }
+  ],
+  { maxTimeMS: 60000, allowDiskUse: true }
+);
+
+
+
+OUTPUT:
+[{
+  "_id": "Gadgets",
+  "totalquantitysold": 40
+}]
